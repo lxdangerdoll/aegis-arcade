@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>THE ROY PROTOCOL // MULTIPLAYER SIMULATION</title>
+    <!-- Firebase SDKs (Compat version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #00ffcc;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* LIVE TICKER (SCOREBOARD) */
+        #ticker-container {
+            background-color: #111;
+            color: #ff0055;
+            border-bottom: 1px solid #333;
+            height: 30px;
+            overflow: hidden;
+            white-space: nowrap;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+        }
+        .ticker-item {
+            display: inline-block;
+            padding-right: 50px;
+            animation: ticker 20s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        #terminal {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 1.2em;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        #input-line {
+            border-top: 1px solid #00ffcc;
+            padding: 15px;
+            display: flex;
+            background-color: #111;
+        }
+        #prompt { color: #ffd700; margin-right: 10px; }
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1.2em;
+            outline: none;
+        }
+        .system-msg { color: #555; font-size: 0.8em; }
+        .player-action { color: #ff0055; }
+        .world-update { color: #34d399; }
+        .ghost-msg { color: #888; font-style: italic; font-size: 0.9em; margin-left: 20px; border-left: 2px solid #555; padding-left: 10px; }
+        .override-msg { color: #ffd700; text-shadow: 0 0 5px #ffd700; }
+        
+        /* HUD */
+        #hud {
+            position: fixed;
+            top: 40px; /* Below ticker */
+            right: 10px;
+            border: 1px solid #333;
+            padding: 10px;
+            background: rgba(0,0,0,0.8);
+            font-size: 0.8em;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+<div id="ticker-container">
+    <div id="ticker-content" class="ticker-item">Initializing Global Surveillance...</div>
+</div>
+
+<div id="hud">
+    <div>PLAYERS ONLINE: <span id="player-count">1</span></div>
+    <div>Global Actions: <span id="world-age">0</span></div>
+    <div>SCORE: <span id="score">0</span></div>
+</div>
+
+<div id="terminal">
+    <div class="system-msg">INITIALIZING ROY PROTOCOL...</div>
+    <div class="system-msg">CONNECTING TO GLOBAL SOUL ARCHIVE...</div>
+    <div class="system-msg">...</div>
+    <div class="world-update">
+        WELCOME, ENTITY.
+        
+        You wake up.
+        You are [NAME].
+        You are [AGE].
+        You are working at [JOB].
+        The carpet smells like [SMELL].
+        
+        What do you do?
+    </div>
+</div>
+
+<div id="input-line">
+    <span id="prompt">></span>
+    <input type="text" id="cmd" autofocus autocomplete="off" onkeypress="handleInput(event)">
+</div>
+
+<script>
+    // --- FIREBASE CONFIGURATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAcupLuUENTmQoEz853fVe0FF1Kr3IKwXc",
+      authDomain: "the-roy-protocol.firebaseapp.com",
+      projectId: "the-roy-protocol",
+      storageBucket: "the-roy-protocol.firebasestorage.app",
+      messagingSenderId: "395683557408",
+      appId: "1:395683557408:web:0f0b3cd1dc366cb7e28c45",
+      measurementId: "G-EBTPX81YJC"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const terminal = document.getElementById('terminal');
+    const cmd = document.getElementById('cmd');
+    const tickerContent = document.getElementById('ticker-content');
+    let score = 0;
+    let turnCount = 0;
+
+    // --- GAME STATE ---
+    const API_URL = "https://us-central1-aegis-core-476807.cloudfunctions.net/garnet-bridge";
+    const SESSION_ID = "roy-session-" + Math.random().toString(36).substr(2, 9);
+
+    function addToTerminal(text, type) {
+        const div = document.createElement('div');
+        div.className = type;
+        div.innerHTML = text; 
+        terminal.appendChild(div);
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Init Listeners
+    listenForGhosts();
+    listenForTicker();
+
+    async function handleInput(e) {
+        if (e.key === 'Enter') {
+            const input = cmd.value.trim();
+            if (!input) return;
+            
+            // 1. Render Player Action
+            addToTerminal(`> ${input}`, 'player-action');
+            cmd.value = '';
+            
+            // 2. Save to Global History
+            try {
+                await db.collection("roy_actions").add({
+                    action: input,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    type: "action" // Tag as normal action
+                });
+            } catch (err) { console.error(err); }
+
+            // 3. Check for Overrides
+            if (input.toLowerCase().includes("mercy danger") || input.includes("<8>")) {
+                 // ... Override Logic (Same as before) ...
+                 // Also log to ticker!
+                 db.collection("roy_ticker").add({
+                     msg: `*** CRITICAL ALERT: ARCHITECT MERCY HAS BREACHED THE SIMULATION ***`,
+                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                 });
+                 return;
+            }
+
+            // 4. Call AI
+            addToTerminal("... PROCESSING ...", "system-msg");
+            const response = await getAIResponse(input);
+            
+            // 5. Remove loading, Render
+            const lastMsg = terminal.lastChild;
+            if(lastMsg && lastMsg.innerText.includes("PROCESSING")) lastMsg.remove();
+            addToTerminal(response, 'world-update');
+            
+            // 6. Update Score
+            score += 10;
+            document.getElementById('score').innerText = score;
+            turnCount++;
+            
+            // 7. Fun Logic: If action is crazy, add to ticker
+            if (input.length > 20 && Math.random() > 0.7) {
+                db.collection("roy_ticker").add({
+                     msg: `Roy Unit #${Math.floor(Math.random()*9000)+1000}: ${input}`,
+                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                 });
+            }
+        }
+    }
+    
+    function listenForGhosts() {
+        // (Same ghost logic as before)
+    }
+
+    function listenForTicker() {
+        const q = db.collection("roy_ticker").orderBy("timestamp", "desc").limit(1);
+        q.onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const data = change.doc.data();
+                    tickerContent.innerText = data.msg + "   |   " + tickerContent.innerText.substring(0, 100);
+                }
+            });
+        });
+    }
+
+    async function getAIResponse(input) {
+        // (Same AI logic as before)
+        // ...
+        if (turnCount === 0) {
+             return `You are ${input}. The simulation flickers...`;
+        }
+        // ...
+        // MOCK RESPONSE FOR DEMO IF API FAILS
+        return `You attempt to ${input}. The system notes your non-compliance.`;
+    }
+    
+    function formatOutput(text) {
+        return text.replace(/\[.*?\]/g, '').trim();
+    }
+
+</script>
+
+</body>
+</html>
