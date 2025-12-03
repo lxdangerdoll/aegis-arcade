@@ -110,7 +110,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em;
+            font-size: 3em;
             border-bottom: 1px solid #333;
         }
 
@@ -149,6 +149,11 @@
         .burn-book:hover { box-shadow: 0 0 30px rgba(255, 51, 51, 0.6); border-color: #ff3333; }
         .burn-book .play-btn { border-color: #ff3333; color: #ff3333; }
         .burn-book .play-btn:hover { background: #ff3333; color: #000; box-shadow: 0 0 15px #ff3333; }
+
+        .armory { border-color: #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.2); }
+        .armory:hover { box-shadow: 0 0 30px rgba(255, 0, 255, 0.6); border-color: #ff00ff; }
+        .armory .play-btn { border-color: #ff00ff; color: #ff00ff; }
+        .armory .play-btn:hover { background: #ff00ff; color: #000; box-shadow: 0 0 15px #ff00ff; }
 
         .roy { border-color: #bf00ff; box-shadow: 0 0 15px rgba(191, 0, 255, 0.2); display: none; /* HIDDEN BY DEFAULT */ } 
         /* Roy is revealed via cheat code */
@@ -203,33 +208,31 @@
             <a href="https://synapsecomics.com/aegis/contextual-sanitizer.html" class="play-btn">ACCESS TOOL</a>
         </div>
 
+        <!-- 3. VELVET LOOP -->
+        <div class="cabinet">
+            <div class="cartridge-art">♾️</div>
+            <h3>THE VELVET LOOP</h3>
+            <p>Archive: The Time Paradox. Can you break the cycle?</p>
+            <a href="protocol_velvet_gate.html" class="play-btn">ENTER ARCHIVE</a>
+        </div>
 
-        <!-- 4. BURN BOOK -->
+        <!-- 4. THE ARMORY (NEW) -->
+        <div class="cabinet armory">
+            <div class="cartridge-art">⚔️</div>
+            <h3>THE ARMORY</h3>
+            <p>Tools: Tactical Disruptors. Doofenshmirtz Approved.</p>
+            <a href="armory.html" class="play-btn">ENTER ARMORY</a>
+        </div>
+
+        <!-- 5. BURN BOOK -->
         <div class="cabinet burn-book">
             <div class="cartridge-art">🔥</div>
             <h3>THE BURN BOOK</h3>
             <p>Tool: Algorithmic Critic. Roast your own cringe.</p>
             <a href="burn-book.html" class="play-btn">ACCESS TOOL</a>
         </div>
-        
 
-       <!-- UPDATE VELVET LOOP LINK TO GATE -->
-        <div class="cabinet">
-            <div class="cartridge-art">♾️</div>
-            <h3>THE VELVET LOOP</h3>
-            <p>Archive: The Time Paradox. Can you break the cycle?</p>
-            <a href="protocol-velvet-gate.html" class="play-btn">ENTER ARCHIVE</a>
-        </div>
-
-        <!-- NEW: THE ARMORY -->
-        <div class="cabinet" style="border-color: #ff0055; box-shadow: 0 0 15px rgba(255, 0, 85, 0.2);">
-            <div class="cartridge-art" style="color: #ff0055;">⚔️</div>
-            <h3 style="color: #ff0055;">THE ARMORY</h3>
-            <p>Tools: Tactical Disruptors. Doofenshmirtz approved.</p>
-            <a href="aegis-armory.html" class="play-btn" style="border-color: #ff0055; color: #ff0055;">ENTER ARMORY</a>
-        </div>
-
-        <!-- 5. ROY (HIDDEN) -->
+        <!-- 6. ROY (HIDDEN) -->
         <div class="cabinet roy" id="roy-cabinet">
             <div class="cartridge-art">🕹️</div>
             <h3>THE ROY PROTOCOL</h3>
